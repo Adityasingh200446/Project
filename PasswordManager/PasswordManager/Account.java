@@ -2,39 +2,29 @@ package PasswordManager;
 
 abstract class Account {
     //first initialize variables
-    String website;
     String username;//Inplace of Username Substute with userName you take as input
     private String password;
-    private String masterKey;
-
-
     
     //constructor 
-    public Account(String website, String username, String password, String masterKey){
-        this.website = website;
+    public Account(String username, String password){
         this.username = username;
         this.password = password;
-        this.masterKey = masterKey;
     }
-
     //means every account must define securityLevel
     public abstract void securityLevel();
 
     public void showDetails(){
-        System.out.println("website:-"+website);
         System.out.println("Username:-"+username);
         System.out.println("Password:-*********");
     }
-    public void showPassword(String inputKey){
-        if(inputKey.equals(masterKey)){//In place of admin substitute with user hint passowrd
+    public void showPassword(String masterKey){
+        if(masterKey.equals("admin")){//In place of admin substitute with user hint passowrd
             System.out.println("Password:-"+password);
         }
         else{
             System.out.println("Incorrect Key!");
         }
     }
-    public String getPassword()  { return password;  }
-    public String getMasterKey() { return masterKey; }
 }
 
 
