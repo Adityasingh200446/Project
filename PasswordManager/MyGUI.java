@@ -4,16 +4,17 @@ import javax.swing.*;
 import java.awt.*;
 
 public class MyGUI {
-    static UserData user;
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {  // ← IMPORTANT: run GUI on correct thread
+        SwingUtilities.invokeLater(() -> {
+
+            PasswordGenerator[] pg = {null};
 
             JFrame frame = new JFrame("Password Generator");
             frame.setSize(500, 450);
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             frame.setLocationRelativeTo(null);
-            frame.setLayout(new BorderLayout()); // ← add this
+            frame.setLayout(new BorderLayout());
 
             // --- Fields ---
             JTextField nameField   = new JTextField(20);
@@ -24,7 +25,7 @@ public class MyGUI {
             resultField.setEditable(false);
             resultField.setBackground(Color.LIGHT_GRAY);
 
-            JButton submitBtn = new JButton("Generate Password");
+            JButton generateBtn = new JButton("Generate Password");
             JButton showPassBtn = new JButton("Show Password");
 
             // --- Panel ---
@@ -47,71 +48,68 @@ public class MyGUI {
             panel.add(resultField);
 
             panel.add(new JLabel(""));
-            panel.add(submitBtn);
+            panel.add(generateBtn);
 
             panel.add(new JLabel(""));
             panel.add(showPassBtn);
 
-            // --- Button Logic ---
-            submitBtn.addActionListener((e) -> {
+            // --- Generate Button ---
+            generateBtn.addActionListener((e) -> {
                 String name      = nameField.getText().trim();
                 String dob       = dobField.getText().trim();
                 String pan       = panField.getText().trim();
                 String masterKey = masterField.getText().trim();
 
-                if (name.isBlank() || dob.isBlank() || 
+                if (name.isBlank() || dob.isBlank() ||
                     pan.isBlank()  || masterKey.isBlank()) {
                     JOptionPane.showMessageDialog(frame,
-                        "All fields are required!",
-                        "Error",
+                        "All fields are required!", "Error",
                         JOptionPane.ERROR_MESSAGE);
                     return;
                 }
 
-                user = new UserData(name, dob, pan, masterKey);
-
-                String password = PasswordGenerator.generate(
-                    user.getName(),
-                    user.getDob(),
-                    user.getPan(),
-                    user.getMasterKey()
-                );
+                pg[0] = new PasswordGenerator(name, dob, pan, masterKey);
                 resultField.setText("********");
-                resultField.putClientProperty("actualPassword", password);
+
+                // Show strength popup
+                String strength = pg[0].checkStrength();
+                if (strength.equals("Strong Password!")) {
+                    JOptionPane.showMessageDialog(frame,
+                        "Strong Password!", "Password Strength",
+                        JOptionPane.INFORMATION_MESSAGE);
+                } else {
+                    JOptionPane.showMessageDialog(frame,
+                        "Weak Password!", "Password Strength",
+                        JOptionPane.WARNING_MESSAGE);
+                }
             });
 
-             showPassBtn.addActionListener((e) -> {
-
-                if(user == null){
-                    JOptionPane.showMessageDialog(frame,"Enter Password First","ERROR",
-                    JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-                String inputKey = JOptionPane.showInputDialog("enter MasterKey");
-
-                if(inputKey==null){
+            // --- Show Password Button ---
+            showPassBtn.addActionListener((e) -> {
+                if (pg[0] == null) {
+                    JOptionPane.showMessageDialog(frame,
+                        "Generate a password first!", "Error",
+                        JOptionPane.ERROR_MESSAGE);
                     return;
                 }
 
-                if(inputKey.equals(user.getMasterKey())){
-                    String result = (String) resultField.getClientProperty("actualPassword");
-                    resultField.setText(result);
+                String inputKey = JOptionPane.showInputDialog(frame, "Enter Master Key:");
+                if (inputKey == null) return;
+
+                if (inputKey.equals(pg[0].getMasterKey())) {
+                    resultField.setText(pg[0].getGeneratedPassword());
+                } else {
+                    JOptionPane.showMessageDialog(frame,
+                        "Incorrect Master Key!", "Error",
+                        JOptionPane.ERROR_MESSAGE);
+                    resultField.setText("********");
                 }
-                else{
-                    JOptionPane.showMessageDialog(frame,"Incorrect MasterKey!","Error",JOptionPane.ERROR_MESSAGE);
-                    resultField.setText("*******");
-                }
+            });
 
-
-
-             });
-
-
-            // --- Add panel to frame ---
-            frame.add(panel, BorderLayout.CENTER); 
-            frame.revalidate(); 
-            frame.repaint();    
-            frame.setVisible(true); 
+            frame.add(panel, BorderLayout.CENTER);
+            frame.revalidate();
+            frame.repaint();
+            frame.setVisible(true);
         });
     }
 }
